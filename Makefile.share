@@ -1,5 +1,5 @@
 CC=emcc
-CFLAGS=
+CFLAGS=-Oz
 
 FFTW3_VERSION=3.3.8
 FFTW3=fftw-$(FFTW3_VERSION)/build/.libs/libfftw3f.a

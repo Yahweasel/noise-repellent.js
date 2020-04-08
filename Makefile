@@ -12,10 +12,14 @@ all: noise-repellent.asm.js noise-repellent.wasm.js
 noise-repellent.asm.js: src/libnoise-repellent.a post.js
 	$(CC) $(CFLAGS) $(EFLAGS) -s WASM=0 \
 		$< $(FFTW3) -o $@
+	cat license.js $@ > $@.tmp
+	mv $@.tmp $@
 
 noise-repellent.wasm.js: src/libnoise-repellent.a post.js
 	$(CC) $(CFLAGS) $(EFLAGS) \
 		$< $(FFTW3) -o $@
+	cat license.js $@ > $@.tmp
+	mv $@.tmp $@
 
 $(FFTW3):
 	test -e fftw-$(FFTW3_VERSION).tar.gz || wget http://www.fftw.org/fftw-$(FFTW3_VERSION).tar.gz
