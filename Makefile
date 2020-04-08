@@ -33,3 +33,4 @@ src/libnoise-repellent.a: $(FFTW3) src/*.c
 clean:
 	rm -rf fftw-$(FFTW3_VERSION)
 	cd src ; $(MAKE) clean
+	rm -f noise-repellent.asm.js noise-repellent.wasm.js noise-repellent.wasm.wasm
