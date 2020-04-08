@@ -1,5 +1,33 @@
-[![Build Status](https://travis-ci.org/lucianodato/noise-repellent.svg?branch=master)](https://travis-ci.org/lucianodato/noise-repellent)
-[![Build status](https://ci.appveyor.com/api/projects/status/aiwjt82ag7rdahqu?svg=true)](https://ci.appveyor.com/project/lucianodato/noise-repellent/branch/master)
+NOTE: This is a port of noise-repellent to JavaScript, not the original noise-repellent!
+
+
+noise-repellent.js
+------------------
+If you're loading from a subdirectory, set `NoiseRepellent = {base:
+"wherever"};`. Load `noise-repellent.js`. Check `NoiseRepellent.ready`, and if
+it's `false`, use `NoiseRepellent.onready` to wait for it.
+
+Once `noise-repellent.js` is loaded, create a `NoiseRepellent` and use it:
+
+```javascript
+var nr = new NoiseRepellent.NoiseRepellent(sampleRate);
+nr.set(NoiseRepellent.N_ADAPTIVE, 1);
+nr.set(NoiseRepellent.WHITENING, 25);
+onframe = function(frameF32) {
+    var ret = nr.run(frameF32);
+    // Maybe do something with nr.latency
+    return ret;
+}
+...
+nr.cleanup();
+```
+
+Other settable ports are identical to the original `noise-repellent`. Their
+names can be found at the top of post.js
+
+The remainder of this document is the original `noise-repellent`'s README, and
+is not JavaScript-specific.
+
 
 noise-repellent
 -------
