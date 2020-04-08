@@ -2,6 +2,7 @@
 noise-repellent -- Noise Reduction LV2
 
 Copyright 2016 Luciano Dato <lucianodato@gmail.com>
+Modified by Yahweasel, 2020
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -23,10 +24,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/
 * \brief The main file for host interaction
 */
 
+#include <stdint.h>
+
+#if 0
 #include "lv2/lv2plug.in/ns/lv2core/lv2.h"
 #include "lv2/lv2plug.in/ns/ext/urid/urid.h"
 #include "lv2/lv2plug.in/ns/ext/atom/atom.h"
 #include "lv2/lv2plug.in/ns/ext/state/state.h"
+#endif
 
 #include "spectral_processing.c"
 
@@ -80,17 +85,17 @@ typedef struct
 	float samp_rate;	//Sample rate received from the host
 
 	//Parameters for the algorithm (user input)
-	float *amount_of_reduction;		//Amount of noise to reduce in dB
-	float *noise_thresholds_offset; //This is to scale the noise profile (over subtraction factor)
-	float *release;					//Release time
-	float *masking;					//Masking scaling
-	float *whitening_factor_pc;		//Whitening amount of the reduction percentage
-	float *noise_learn_state;		//Learn Noise state (Manual-Off-Auto)
-	float *adaptive_state;			//Autocapture switch
-	float *reset_profile;			//Reset Noise switch
-	float *residual_listen;			//For noise only listening
-	float *transient_protection;	//Multiplier for thresholding onsets with rolling mean
-	float *enable;					//For soft bypass (click free bypass)
+	float amount_of_reduction;		//Amount of noise to reduce in dB
+	float noise_thresholds_offset; //This is to scale the noise profile (over subtraction factor)
+	float release;					//Release time
+	float masking;					//Masking scaling
+	float whitening_factor_pc;		//Whitening amount of the reduction percentage
+	float noise_learn_state;		//Learn Noise state (Manual-Off-Auto)
+	float adaptive_state;			//Autocapture switch
+	float reset_profile;			//Reset Noise switch
+	float residual_listen;			//For noise only listening
+	float transient_protection;	//Multiplier for thresholding onsets with rolling mean
+	float enable;					//For soft bypass (click free bypass)
 	float *report_latency;			//Latency necessary
 
 	//Parameters values and arrays for the STFT
@@ -184,6 +189,7 @@ typedef struct
 	float *output_fft_buffer_at;
 	fftwf_plan forward_at;
 
+#if 0
 	//LV2 state URID (Save and restore noise profile)
 	LV2_URID_Map *map;
 	LV2_URID atom_Vector;
@@ -192,18 +198,19 @@ typedef struct
 	LV2_URID prop_fftsize;
 	LV2_URID prop_nwindow;
 	LV2_URID prop_FFTp2;
+#endif
 } Nrepel;
 
 /**
 * Instantiates the plugin.
 */
-static LV2_Handle
-instantiate(const LV2_Descriptor *descriptor, double rate, const char *bundle_path,
-			const LV2_Feature *const *features)
+void *
+nrepel_instantiate(double rate)
 {
 	//Actual struct declaration
 	Nrepel *self = (Nrepel *)calloc(1, sizeof(Nrepel));
 
+#if 0
 	//Retrieve the URID map callback, and needed URIDs
 	for (int i = 0; features[i]; ++i)
 	{
@@ -226,6 +233,21 @@ instantiate(const LV2_Descriptor *descriptor, double rate, const char *bundle_pa
 	self->prop_fftsize = self->map->map(self->map->handle, NREPEL_URI "#fftsize");
 	self->prop_nwindow = self->map->map(self->map->handle, NREPEL_URI "#nwindow");
 	self->prop_FFTp2 = self->map->map(self->map->handle, NREPEL_URI "#FFTp2");
+#endif
+
+        //Defaults
+	self->amount_of_reduction = 10;
+	self->noise_thresholds_offset = 1;
+	self->release = 150;
+	self->masking = 5;
+	self->whitening_factor_pc = 0;
+	self->noise_learn_state = 0;
+	self->adaptive_state = 0;
+	self->reset_profile = 0;
+	self->residual_listen = 0;
+	self->transient_protection = 1;
+	self->enable = 1;
+	self->report_latency = NULL;
 
 	//Sampling related
 	self->samp_rate = (float)rate;
@@ -344,51 +366,51 @@ instantiate(const LV2_Descriptor *descriptor, double rate, const char *bundle_pa
 	initialize_array(self->alpha_masking, 1.f, self->fft_size_2 + 1);
 	initialize_array(self->beta_masking, 0.f, self->fft_size_2 + 1);
 
-	return (LV2_Handle)self;
+	return (void *) self;
 }
 
 /**
 * Used by the host to connect the ports of this plugin.
 */
-static void
-connect_port(LV2_Handle instance, uint32_t port, void *data)
+void
+nrepel_connect_port(void *instance, uint32_t port, void *data)
 {
 	Nrepel *self = (Nrepel *)instance;
 
 	switch ((PortIndex)port)
 	{
 	case NREPEL_AMOUNT:
-		self->amount_of_reduction = (float *)data;
+		self->amount_of_reduction = *((float *)data);
 		break;
 	case NREPEL_NOFFSET:
-		self->noise_thresholds_offset = (float *)data;
+		self->noise_thresholds_offset = *((float *)data);
 		break;
 	case NREPEL_RELEASE:
-		self->release = (float *)data;
+		self->release = *((float *)data);
 		break;
 	case NREPEL_MASKING:
-		self->masking = (float *)data;
+		self->masking = *((float *)data);
 		break;
 	case NREPEL_WHITENING:
-		self->whitening_factor_pc = (float *)data;
+		self->whitening_factor_pc = *((float *)data);
 		break;
 	case NREPEL_N_LEARN:
-		self->noise_learn_state = (float *)data;
+		self->noise_learn_state = *((float *)data);
 		break;
 	case NREPEL_N_ADAPTIVE:
-		self->adaptive_state = (float *)data;
+		self->adaptive_state = *((float *)data);
 		break;
 	case NREPEL_RESIDUAL_LISTEN:
-		self->residual_listen = (float *)data;
+		self->residual_listen = *((float *)data);
 		break;
 	case NREPEL_T_PROTECT:
-		self->transient_protection = (float *)data;
+		self->transient_protection = *((float *)data);
 		break;
 	case NREPEL_RESET:
-		self->reset_profile = (float *)data;
+		self->reset_profile = *((float *)data);
 		break;
 	case NREPEL_ENABLE:
-		self->enable = (float *)data;
+		self->enable = *((float *)data);
 		break;
 	case NREPEL_LATENCY:
 		self->report_latency = (float *)data;
@@ -437,8 +459,8 @@ reset_noise_profile(Nrepel *self)
 /**
 * Main process function of the plugin.
 */
-static void
-run(LV2_Handle instance, uint32_t n_samples)
+void
+nrepel_run(void *instance, uint32_t n_samples)
 {
 	Nrepel *self = (Nrepel *)instance;
 
@@ -447,16 +469,17 @@ run(LV2_Handle instance, uint32_t n_samples)
 	unsigned int pos;
 
 	//Inform latency at run call
+        if (self->report_latency)
 	*(self->report_latency) = (float)self->input_latency;
 
 	//Reset button state (if on)
-	if (*(self->reset_profile) == 1.f)
+	if (self->reset_profile == 1.f)
 	{
 		reset_noise_profile(self);
 	}
 
 	//Softbypass targets in case of disabled or enabled
-	if (*(self->enable) == 0.f)
+	if (self->enable == 0.f)
 	{ //if disabled
 		self->wet_dry_target = 0.f;
 	}
@@ -471,18 +494,18 @@ run(LV2_Handle instance, uint32_t n_samples)
 	/*exponential decay coefficients for envelopes and adaptive noise profiling
 		These must take into account the hop size as explained in the following paper
 		FFT-BASED DYNAMIC RANGE COMPRESSION*/
-	if (*(self->release) != 0.f) //This allows to turn off smoothing with 0 ms in order to use masking only
+	if (self->release != 0.f) //This allows to turn off smoothing with 0 ms in order to use masking only
 	{
-		self->release_coeff = expf(-1000.f / (((*(self->release)) * self->samp_rate) / self->hop));
+		self->release_coeff = expf(-1000.f / (((self->release) * self->samp_rate) / self->hop));
 	}
 	else
 	{
 		self->release_coeff = 0.f; //This avoids incorrect results when moving sliders rapidly
 	}
 
-	self->amount_of_reduction_linear = from_dB(-1.f * *(self->amount_of_reduction));
-	self->thresholds_offset_linear = from_dB(*(self->noise_thresholds_offset));
-	self->whitening_factor = *(self->whitening_factor_pc) / 100.f;
+	self->amount_of_reduction_linear = from_dB(-1.f * self->amount_of_reduction);
+	self->thresholds_offset_linear = from_dB(self->noise_thresholds_offset);
+	self->whitening_factor = self->whitening_factor_pc / 100.f;
 
 	//main loop for processing
 	for (pos = 0; pos < n_samples; pos++)
@@ -530,7 +553,7 @@ run(LV2_Handle instance, uint32_t n_samples)
 			if (!is_empty(self->fft_p2, self->fft_size_2))
 			{
 				//If adaptive noise is selected the noise is adapted in time
-				if (*(self->adaptive_state) == 1.f)
+				if (self->adaptive_state == 1.f)
 				{
 					//This has to be revised(issue 8 on github)
 					adapt_noise(self->fft_p2, self->fft_size_2, self->noise_thresholds_p2,
@@ -544,7 +567,7 @@ run(LV2_Handle instance, uint32_t n_samples)
 				/*If selected estimate noise spectrum is based on selected portion of signal
 				 *do not process the signal
 				 */
-				if (*(self->noise_learn_state) == 1.f)
+				if (self->noise_learn_state == 1.f)
 				{ //MANUAL
 
 					//Increase window count for rolling mean
@@ -568,16 +591,16 @@ run(LV2_Handle instance, uint32_t n_samples)
 									  self->SSF, self->release_coeff,
 									  self->spreaded_unity_gain_bark_spectrum,
 									  self->spl_reference_values, self->alpha_masking,
-									  self->beta_masking, *(self->masking), *(self->adaptive_state),
+									  self->beta_masking, self->masking, self->adaptive_state,
 									  self->amount_of_reduction_linear, self->transient_preserv_prev,
 									  &self->tp_window_count, &self->tp_r_mean,
-									  &self->transient_present, *(self->transient_protection));
+									  &self->transient_present, self->transient_protection);
 
 						//Supression rule
 						spectral_gain(self->fft_p2, self->noise_thresholds_p2,
 									  self->noise_thresholds_scaled, self->smoothed_spectrum,
-									  self->fft_size_2, *(self->adaptive_state), self->Gk,
-									  *(self->transient_protection), self->transient_present);
+									  self->fft_size_2, self->adaptive_state, self->Gk,
+									  self->transient_protection, self->transient_present);
 
 						//apply gains
 						denoised_calulation(self->fft_size, self->output_fft_buffer,
@@ -594,7 +617,7 @@ run(LV2_Handle instance, uint32_t n_samples)
 												self->residual_spectrum,
 												self->denoised_spectrum,
 												self->amount_of_reduction_linear,
-												*(self->residual_listen));
+												self->residual_listen);
 
 						soft_bypass(self->final_spectrum, self->output_fft_buffer,
 									self->wet_dry, self->fft_size);
@@ -648,12 +671,13 @@ run(LV2_Handle instance, uint32_t n_samples)
 /**
 * Cleanup and freeing memory.
 */
-static void
-cleanup(LV2_Handle instance)
+void
+nrepel_cleanup(void *instance)
 {
 	free(instance);
 }
 
+#if 0
 /**
 * State saving of the noise profile.
 */
@@ -768,3 +792,4 @@ lv2_descriptor(uint32_t index)
 		return NULL;
 	}
 }
+#endif

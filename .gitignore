@@ -27,6 +27,12 @@
 *.i*86
 *.x86_64
 *.hex
+*.asm.js
+*.wasm.js
+*.wasm
 
 # Debug files
 *.dSYM/
+
+# Prereqs
+fftw*

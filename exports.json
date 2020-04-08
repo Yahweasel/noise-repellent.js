@@ -1,0 +1,9 @@
+[
+    "_nrepel_instantiate",
+    "_nrepel_connect_port",
+    "_nrepel_run",
+    "_nrepel_cleanup",
+    "_malloc",
+    "_realloc",
+    "_free"
+]
