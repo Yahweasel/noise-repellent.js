@@ -35,11 +35,11 @@ Module.raw_connect_port = Module.cwrap("nrepel_connect_port", "number", ["number
 Module.raw_run = Module.cwrap("nrepel_run", "number", ["number", "number"]);
 Module.cleanup = Module.cwrap("nrepel_cleanup", null, ["number"]);
 Module.malloc = Module.cwrap("malloc", "number", ["number"]);
-Module.realloc = Module.cwrap("malloc", "number", ["number", "number"]);
+Module.realloc = Module.cwrap("realloc", "number", ["number", "number"]);
 Module.free = Module.cwrap("free", null, ["number"]);
 
 // We wrap that in a convenience class
-function NoiseRepellent(rate) {
+function NoiseRepellentW(rate) {
     // Create the instance itself
     this.instance = Module.instantiate(rate);
     if (this.instance === 0)
@@ -60,9 +60,9 @@ function NoiseRepellent(rate) {
     this.inputBuf = this.outputBuf = null;
     this.bufSz = 0;
 }
-Module.NoiseRepellent = NoiseRepellent;
+Module.NoiseRepellent = NoiseRepellentW;
 
-NoiseRepellent.prototype = {
+NoiseRepellentW.prototype = {
     // Set a setting
     set: function(port, value) {
         // Put it in the buffer
