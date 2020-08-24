@@ -2,20 +2,20 @@ include Makefile.share
 
 EFLAGS=\
 	--memory-init-file 0 --post-js post.js \
-	-s "EXPORT_NAME='NoiseRepellent'" \
+	-s "EXPORT_NAME='NoiseRepellentFactory'" \
 	-s "EXPORTED_FUNCTIONS=@exports.json" \
 	-s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" \
-	-s MODULARIZE_INSTANCE=1
+	-s MODULARIZE=1
 
-all: noise-repellent.asm.js noise-repellent.wasm.js
+all: noise-repellent-m.asm.js noise-repellent-m.wasm.js
 
-noise-repellent.asm.js: src/libnoise-repellent.a post.js
+noise-repellent-m.asm.js: src/libnoise-repellent.a post.js
 	$(CC) $(CFLAGS) $(EFLAGS) -s WASM=0 \
 		$< $(FFTW3) -o $@
 	cat license.js $@ > $@.tmp
 	mv $@.tmp $@
 
-noise-repellent.wasm.js: src/libnoise-repellent.a post.js
+noise-repellent-m.wasm.js: src/libnoise-repellent.a post.js
 	$(CC) $(CFLAGS) $(EFLAGS) \
 		$< $(FFTW3) -o $@
 	cat license.js $@ > $@.tmp

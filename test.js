@@ -1,14 +1,13 @@
-const nrepel = require("./noise-repellent.js");
+const nrepel = require("./noise-repellent-m.js");
 
-nrepel.onready = function() {
+nrepel.NoiseRepellent(48000).then(function(nr) {
     // Buffer of nothing
     var buf = [];
     for (var i = 0; i < 48000; i++)
         buf.push(Math.sin(i/109*Math.PI));
     console.log(buf);
 
-    // Make the instance
-    var nr = new nrepel.NoiseRepellent(48000);
+    // Enable
     nr.set(nrepel.ENABLE, 1);
 
     // Figure out our latency
@@ -21,6 +20,4 @@ nrepel.onready = function() {
     // Then run it with the real input
     console.log(nr.run(buf).slice(latency+24000));
     nr.cleanup();
-};
-if (nrepel.ready)
-    nrepel.onready();
+});
