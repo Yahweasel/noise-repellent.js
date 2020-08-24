@@ -4,26 +4,26 @@ NOTE: This is a port of noise-repellent to JavaScript, not the original noise-re
 noise-repellent.js
 ------------------
 If you're loading from a subdirectory, set `NoiseRepellent = {base:
-"wherever"};`. Load `noise-repellent.js`. Check `NoiseRepellent.ready`, and if
-it's `false`, use `NoiseRepellent.onready` to wait for it.
-
-Once `noise-repellent.js` is loaded, create a `NoiseRepellent` and use it:
+"wherever"};`. Load `noise-repellent-m.js`. `NoiseRepellent.NoiseRepellent` is
+a function that returns a promise that resolves to a NoiseRepellent instance,
+given the sample rate as an argument.
 
 ```javascript
-var nr = new NoiseRepellent.NoiseRepellent(sampleRate);
-nr.set(NoiseRepellent.N_ADAPTIVE, 1);
-nr.set(NoiseRepellent.WHITENING, 25);
-onframe = function(frameF32) {
-    var ret = nr.run(frameF32);
-    // Maybe do something with nr.latency
-    return ret;
-}
-...
-nr.cleanup();
+NoiseRepellent.NoiseRepellent(sampleRate).then(function(nr) {
+    nr.set(NoiseRepellent.N_ADAPTIVE, 1);
+    nr.set(NoiseRepellent.WHITENING, 25);
+    onframe = function(frameF32) {
+        var ret = nr.run(frameF32);
+        // Maybe do something with nr.latency
+        return ret;
+    }
+    ...
+    nr.cleanup();
+});
 ```
 
 Other settable ports are identical to the original `noise-repellent`. Their
-names can be found at the top of post.js
+names can be found in `noise-repellent-m.js`.
 
 The remainder of this document is the original `noise-repellent`'s README, and
 is not JavaScript-specific.
